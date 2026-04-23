@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>peregrine.dev — Custom AI Workflow Automation</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --charcoal: #212529;
+      --amber: #FFB703;
+      --steel: #5B7FA6;
+      --bg: #EEECEA;
+      --white: #F8F5F0;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--charcoal); overflow-x: hidden; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.6; transform:scale(1.4); } }
+    @keyframes drawPath { to { stroke-dashoffset: 0; } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    .btn-amber {
+      display: inline-block; background: var(--amber); color: var(--charcoal);
+      font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 15px;
+      padding: 14px 32px; border: none; cursor: pointer; text-decoration: none;
+      letter-spacing: .01em; transition: all .2s; border-radius: 0;
+    }
+    .btn-amber:hover { background: #e6a400; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,183,3,.3); }
+    .btn-outline {
+      display: inline-block; background: transparent; color: rgba(255,255,255,.75);
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 15px;
+      padding: 13px 30px; border: 1.5px solid rgba(255,255,255,.2); cursor: pointer;
+      text-decoration: none; transition: all .2s; border-radius: 0;
+    }
+    .btn-outline:hover { border-color: var(--amber); color: var(--amber); }
+
+    input, textarea {
+      width: 100%; padding: 12px 14px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+      color: var(--white); font-size: 14px; font-family: 'DM Sans', sans-serif;
+      outline: none; transition: border-color .2s; border-radius: 0;
+    }
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,.25); }
+    input:focus, textarea:focus { border-color: var(--amber); }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+const C = { charcoal:'#212529', amber:'#FFB703', steel:'#5B7FA6', bg:'#EEECEA', white:'#F8F5F0' };
+
+/* ─── NAV ─── */
+function Nav() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+  return (
+    <nav style={{
+      position:'fixed', top:0, left:0, right:0, zIndex:200,
+      height:64, padding:'0 60px',
+      display:'flex', alignItems:'center', justifyContent:'space-between',
+      background: scrolled ? 'rgba(33,37,41,.97)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(12px)' : 'none',
+      borderBottom: scrolled ? '1px solid rgba(255,255,255,.07)' : 'none',
+      transition:'all .35s ease',
+    }}>
+      <WordMark size={20} />
+      <div style={{display:'flex', alignItems:'center', gap:36}}>
+        {[['#workflow','How It Works'],['#services','Services'],['#contact','Contact']].map(([h,l])=>(
+          <a key={h} href={h} style={{color:'rgba(255,255,255,.6)', textDecoration:'none', fontSize:14, fontWeight:500, transition:'color .2s'}}
+            onMouseOver={e=>e.target.style.color=C.amber}
+            onMouseOut={e=>e.target.style.color='rgba(255,255,255,.6)'}>{l}</a>
+        ))}
+        <a href="#contact" className="btn-amber" style={{padding:'9px 22px', fontSize:14}}>Book a Consult</a>
+      </div>
+    </nav>
+  );
+}
+
+function WordMark({ size = 22 }) {
+  return (
+    <span style={{ fontWeight:800, fontSize:size, letterSpacing:'-0.025em', lineHeight:1 }}>
+      <span style={{ color:C.white }}>peregrine</span>
+      <span style={{ color:C.amber }}>.dev</span>
+    </span>
+  );
+}
+
+/* ─── HERO ─── */
+function Hero() {
+  return (
+    <section style={{
+      minHeight:'100vh', background:C.charcoal,
+      display:'flex', flexDirection:'column', justifyContent:'center',
+      padding:'120px 80px 80px', position:'relative', overflow:'hidden',
+    }}>
+      {/* Dot grid */}
+      <div style={{
+        position:'absolute', inset:0, pointerEvents:'none',
+        backgroundImage:`radial-gradient(circle, rgba(255,183,3,.18) 1px, transparent 1px)`,
+        backgroundSize:'48px 48px', opacity:.5,
+      }} />
+      {/* Vignette */}
+      <div style={{
+        position:'absolute', inset:0, pointerEvents:'none',
+        background:'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(33,37,41,.9) 100%)',
+      }} />
+      {/* Falcon stoop SVG path */}
+      <svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}} viewBox="0 0 1440 900" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={C.amber} stopOpacity="0"/>
+            <stop offset="50%" stopColor={C.amber} stopOpacity=".5"/>
+            <stop offset="100%" stopColor={C.amber} stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M 160 80 C 400 160, 700 320, 960 540 S 1280 800, 1440 900"
+          fill="none" stroke="url(#sg)" strokeWidth="1.5"
+          strokeDasharray="1600" strokeDashoffset="1600"
+          style={{animation:'drawPath 3s ease forwards .4s'}}/>
+        <path d="M 1300 60 C 1100 180, 900 260, 680 400 S 280 640, 80 900"
+          fill="none" stroke="rgba(91,127,166,.25)" strokeWidth="1"
+          strokeDasharray="1600" strokeDashoffset="1600"
+          style={{animation:'drawPath 3.5s ease forwards .9s'}}/>
+      </svg>
+
+      <div style={{position:'relative', maxWidth:820, animation:'fadeUp .9s ease both .2s'}}>
+        <div style={{
+          display:'inline-flex', alignItems:'center', gap:8,
+          background:'rgba(255,183,3,.1)', border:'1px solid rgba(255,183,3,.25)',
+          color:C.amber, fontSize:11, fontWeight:700, letterSpacing:'.12em',
+          padding:'6px 14px', textTransform:'uppercase', marginBottom:36,
+        }}>
+          <span style={{width:6,height:6,borderRadius:'50%',background:C.amber,display:'inline-block'}}/>
+          St. George, UT · Available Remotely Worldwide
+        </div>
+        <h1 style={{
+          fontSize:'clamp(44px,6.5vw,92px)', fontWeight:800, color:C.white,
+          lineHeight:1.0, letterSpacing:'-0.03em', marginBottom:28, textWrap:'pretty',
+        }}>
+          Your workflows,<br/>
+          <span style={{color:C.amber}}>radically faster.</span><br/>
+          <span style={{color:'rgba(255,255,255,.45)', fontWeight:300}}>No extra headcount.</span>
+        </h1>
+        <p style={{fontSize:20, color:'rgba(255,255,255,.55)', lineHeight:1.65, maxWidth:580, marginBottom:52, fontWeight:400}}>
+          We build custom AI agents that automate the slow, repetitive work stealing hours from your team — so you can focus on what actually matters.
+        </p>
+        <div style={{display:'flex', gap:16, alignItems:'center'}}>
+          <a href="#contact" className="btn-amber" style={{fontSize:16, padding:'16px 40px'}}>Book a Free Consult</a>
+          <a href="#workflow" className="btn-outline">See How It Works ↓</a>
+        </div>
+      </div>
+
+      {/* Hero stats */}
+      <div style={{
+        position:'relative', display:'flex', gap:0,
+        marginTop:100, paddingTop:48,
+        borderTop:'1px solid rgba(255,255,255,.08)',
+      }}>
+        {[
+          ['90%','Reduction in manual processing time'],
+          ['8×','Faster throughput on automated workflows'],
+          ['24/7','AI agents run continuously — no overtime'],
+        ].map(([v,l],i)=>(
+          <div key={i} style={{
+            flex:1, paddingLeft: i>0 ? 48:0, paddingRight:48,
+            borderLeft: i>0 ? '1px solid rgba(255,255,255,.08)' : 'none',
+            animation:`fadeUp .7s ease both ${.5+i*.15}s`,
+          }}>
+            <div style={{fontSize:48, fontWeight:800, color:C.amber, letterSpacing:'-0.03em', lineHeight:1}}>{v}</div>
+            <div style={{fontSize:13, color:'rgba(255,255,255,.4)', marginTop:8, lineHeight:1.5, maxWidth:200}}>{l}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ─── WORKFLOW ANIMATION ─── */
+const MANUAL_STEPS = [
+  { label:'Check Email Inbox',     time:'20 min',  note:'Find & open invoice email'       },
+  { label:'Manual Data Entry',     time:'15 min',  note:'Re-type fields into spreadsheet'  },
+  { label:'Match Purchase Orders', time:'25 min',  note:'Search folders manually'          },
+  { label:'Await Manager Approval',time:'2–4 hrs', note:'Email chains, calendar delays'   },
+  { label:'Update Accounting',     time:'10 min',  note:'Enter data into QuickBooks'      },
+  { label:'Send Confirmation',     time:'5 min',   note:'Compose & send reply'            },
+];
+const AI_STEPS = [
+  { label:'Email Trigger',     time:'< 1s',   note:'Webhook fires on receipt'          },
+  { label:'AI Data Extraction',time:'2s',     note:'LLM reads & structures all fields' },
+  { label:'PO Matching',       time:'3s',     note:'Vector search across records'      },
+  { label:'Auto-Approval',     time:'Instant',note:'Rule engine — no human wait'       },
+  { label:'System API Sync',   time:'1s',     note:'Direct integration call'           },
+  { label:'Confirmation Sent', time:'< 1s',   note:'Template rendered & dispatched'   },
+];
+
+// Tick timeline (10 ticks/sec, cycle = 160 ticks = 16s)
+const CYCLE = 160;
+const M_ON = [5, 18, 32, 52, 72, 83];   // manual steps activate
+const A_ON = [100, 104, 107, 110, 110, 113]; // AI steps activate (4+5 simultaneous)
+const SHOW_SAVINGS = 122;
+
+function nodeState(idx, tick, timeline) {
+  if (tick < timeline[idx]) return 'idle';
+  const next = timeline[idx+1] ?? (timeline[idx]+12);
+  if (tick < next) return 'active';
+  return 'done';
+}
+
+function FlowNode({ label, note, time, state, isAI }) {
+  const accent = isAI ? C.amber : '#e05c5c';
+  return (
+    <div style={{
+      display:'flex', alignItems:'center', gap:14,
+      padding:'11px 16px',
+      background: state==='idle' ? 'rgba(255,255,255,.03)' : `${accent}0e`,
+      border:`1px solid ${state==='idle' ? 'rgba(255,255,255,.07)' : accent+'44'}`,
+      transition:'all .4s ease',
+    }}>
+      <div style={{
+        width:9, height:9, borderRadius:'50%', flexShrink:0,
+        background: state==='idle' ? 'rgba(255,255,255,.15)' : accent,
+        boxShadow: state!=='idle' ? `0 0 14px ${accent}99` : 'none',
+        animation: state==='active' ? 'pulse .7s infinite' : 'none',
+        transition:'all .35s',
+      }}/>
+      <div style={{flex:1}}>
+        <div style={{fontSize:13, fontWeight:600, color: state==='idle' ? 'rgba(255,255,255,.3)' : C.white, transition:'color .35s'}}>{label}</div>
+        <div style={{fontSize:11, color:'rgba(255,255,255,.25)', marginTop:2}}>{note}</div>
+      </div>
+      <div style={{
+        fontSize:12, fontWeight:700, whiteSpace:'nowrap',
+        color: state==='idle' ? 'transparent' : accent,
+        background: state==='idle' ? 'transparent' : `${accent}15`,
+        border:`1px solid ${state==='idle' ? 'transparent' : accent+'35'}`,
+        padding:'3px 9px', transition:'all .35s',
+      }}>{time}</div>
+    </div>
+  );
+}
+
+function WorkflowPanel({ isAI, steps, timeline, tick, totalTime }) {
+  const accent = isAI ? C.amber : '#e05c5c';
+  const lastTick = timeline[timeline.length-1];
+  const allDone = tick >= lastTick+10;
+
+  return (
+    <div style={{
+      flex:1, padding:'30px 28px',
+      background:'rgba(255,255,255,.03)',
+      border:`1px solid ${isAI ? 'rgba(255,183,3,.2)' : 'rgba(255,255,255,.08)'}`,
+    }}>
+      {/* Header */}
+      <div style={{marginBottom:20}}>
+        <div style={{
+          display:'inline-block', fontSize:10, fontWeight:700, letterSpacing:'.12em',
+          textTransform:'uppercase', color:accent,
+          background:`${accent}15`, border:`1px solid ${accent}35`,
+          padding:'4px 10px', marginBottom:14,
+        }}>{isAI ? 'Peregrine AI Agent' : 'Manual Process'}</div>
+        <div style={{fontSize:17, fontWeight:700, color:C.white}}>Invoice Processing</div>
+        <div style={{fontSize:12, color:'rgba(255,255,255,.35)', marginTop:3}}>
+          {isAI ? 'Automated, parallel, always-on' : 'One person, no automation'}
+        </div>
+      </div>
+
+      {/* Nodes */}
+      <div style={{display:'flex', flexDirection:'column', gap:0}}>
+        {steps.map((s,i)=>{
+          const st = nodeState(i, tick, timeline);
+          return (
+            <React.Fragment key={i}>
+              <FlowNode {...s} state={st} isAI={isAI}/>
+              {i < steps.length-1 && (
+                <div style={{paddingLeft:20, height:18, display:'flex', alignItems:'center'}}>
+                  <div style={{width:1, height:'100%', background: nodeState(i,tick,timeline)!=='idle' ? `${accent}60` : 'rgba(255,255,255,.07)', transition:'background .4s'}}/>
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+
+      {/* Total */}
+      <div style={{
+        marginTop:20, paddingTop:18,
+        borderTop:'1px solid rgba(255,255,255,.08)',
+        opacity: allDone ? 1 : 0,
+        transform: allDone ? 'translateY(0)' : 'translateY(6px)',
+        transition:'all .6s ease',
+      }}>
+        <div style={{fontSize:10, fontWeight:700, color:'rgba(255,255,255,.35)', textTransform:'uppercase', letterSpacing:'.1em', marginBottom:6}}>Total Time</div>
+        <div style={{fontSize:36, fontWeight:800, color:accent, letterSpacing:'-0.03em', lineHeight:1}}>{totalTime}</div>
+      </div>
+    </div>
+  );
+}
+
+function WorkflowDemo() {
+  const [tick, setTick] = useState(0);
+  const ref = useRef(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      ref.current = (ref.current + 1) % CYCLE;
+      setTick(ref.current);
+    }, 100);
+    return () => clearInterval(id);
+  }, []);
+
+  const showSavings = tick >= SHOW_SAVINGS;
+
+  return (
+    <section id="workflow" style={{background:C.charcoal, padding:'100px 80px'}}>
+      <div style={{maxWidth:1240, margin:'0 auto'}}>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:60, flexWrap:'wrap', gap:24}}>
+          <div style={{maxWidth:540}}>
+            <div style={{fontSize:11, fontWeight:700, letterSpacing:'.14em', color:C.amber, textTransform:'uppercase', marginBottom:16}}>Live Comparison</div>
+            <h2 style={{fontSize:'clamp(28px,4vw,52px)', fontWeight:800, color:C.white, lineHeight:1.08, letterSpacing:'-0.025em', marginBottom:16}}>
+              Same task.<br/>Radically different outcome.
+            </h2>
+            <p style={{fontSize:16, color:'rgba(255,255,255,.45)', lineHeight:1.65}}>
+              Watch an invoice workflow run both ways. The AI completes in the time it takes a human to find the email.
+            </p>
+          </div>
+          <div style={{
+            display:'flex', alignItems:'center', gap:12,
+            padding:'10px 18px',
+            background:'rgba(255,255,255,.04)',
+            border:'1px solid rgba(255,255,255,.1)',
+            fontSize:12, color:'rgba(255,255,255,.4)',
+          }}>
+            <div style={{width:7,height:7,borderRadius:'50%',background:C.amber,animation:'pulse .9s infinite'}}/>
+            Animation loops · 16s cycle
+          </div>
+        </div>
+
+        {/* Two panels */}
+        <div style={{display:'flex', gap:16}}>
+          <WorkflowPanel isAI={false} steps={MANUAL_STEPS} timeline={M_ON} tick={tick} totalTime="~4.5 hours"/>
+          {/* Divider */}
+          <div style={{
+            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8,
+            padding:'0 4px', color:'rgba(255,255,255,.2)', fontSize:11, fontWeight:700, letterSpacing:'.08em',
+            minWidth:48, textAlign:'center',
+          }}>
+            <div style={{flex:1, width:1, background:'rgba(255,255,255,.08)'}}/>
+            <span style={{transform:'rotate(0deg)', whiteSpace:'nowrap'}}>VS</span>
+            <div style={{flex:1, width:1, background:'rgba(255,255,255,.08)'}}/>
+          </div>
+          <WorkflowPanel isAI={true} steps={AI_STEPS} timeline={A_ON} tick={tick} totalTime="~8 seconds"/>
+        </div>
+
+        {/* Savings banner */}
+        <div style={{
+          marginTop:20,
+          padding:'24px 32px',
+          background:`${C.amber}0d`,
+          border:`1px solid ${C.amber}30`,
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+          gap:24, flexWrap:'wrap',
+          opacity: showSavings ? 1 : 0,
+          transform: showSavings ? 'translateY(0)' : 'translateY(12px)',
+          transition:'all .7s ease',
+        }}>
+          <div>
+            <div style={{fontSize:11, fontWeight:700, color:C.amber, textTransform:'uppercase', letterSpacing:'.1em', marginBottom:6}}>Time Reclaimed Per Invoice</div>
+            <div style={{fontSize:22, fontWeight:700, color:C.white, lineHeight:1.3}}>
+              4 hours 29 minutes saved — per document, per employee, every single day.
+            </div>
+          </div>
+          <a href="#contact" className="btn-amber" style={{whiteSpace:'nowrap', flexShrink:0}}>Build yours →</a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── SERVICES ─── */
+function Services() {
+  const cards = [
+    {
+      n:'01', title:'Document & Data Extraction',
+      body:'PDFs, invoices, contracts, emails — AI reads, structures, and routes them instantly without human handling.',
+      tags:['LLM Parsing','OCR','Structured Output'],
+    },
+    {
+      n:'02', title:'Multi-Step Agent Workflows',
+      body:'Chain decisions, lookups, API calls, and approvals into a single automated pipeline that operates 24/7.',
+      tags:['Custom Agents','LangChain','n8n'],
+    },
+    {
+      n:'03', title:'CRM & Systems Integration',
+      body:'Connect AI output directly to your existing stack — Salesforce, HubSpot, QuickBooks, Slack, and beyond.',
+      tags:['REST APIs','Webhooks','Real-time Sync'],
+    },
+  ];
+  return (
+    <section id="services" style={{background:C.bg, padding:'100px 80px'}}>
+      <div style={{maxWidth:1240, margin:'0 auto'}}>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:64, flexWrap:'wrap', gap:24}}>
+          <div>
+            <div style={{fontSize:11, fontWeight:700, letterSpacing:'.14em', color:C.steel, textTransform:'uppercase', marginBottom:16}}>What We Build</div>
+            <h2 style={{fontSize:'clamp(28px,4vw,48px)', fontWeight:800, color:C.charcoal, lineHeight:1.08, letterSpacing:'-0.025em'}}>
+              Precise tools.<br/>Built for your stack.
+            </h2>
+          </div>
+          <a href="#contact" className="btn-amber">Start a project</a>
+        </div>
+        <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:3}}>
+          {cards.map((c,i)=>(
+            <div key={i} style={{
+              padding:'44px 38px',
+              background: i===1 ? C.charcoal : C.white,
+            }}>
+              <div style={{fontSize:11, fontWeight:700, color: i===1 ? C.amber : C.steel, letterSpacing:'.1em', marginBottom:28}}>{c.n}</div>
+              <h3 style={{fontSize:22, fontWeight:700, color: i===1 ? C.white : C.charcoal, lineHeight:1.2, marginBottom:16, letterSpacing:'-0.01em'}}>{c.title}</h3>
+              <p style={{fontSize:15, lineHeight:1.7, color: i===1 ? 'rgba(255,255,255,.5)' : 'rgba(33,37,41,.58)', marginBottom:32}}>{c.body}</p>
+              <div style={{display:'flex', flexWrap:'wrap', gap:8}}>
+                {c.tags.map(t=>(
+                  <span key={t} style={{
+                    fontSize:11, fontWeight:600, letterSpacing:'.04em',
+                    color: i===1 ? C.amber : C.steel,
+                    background: i===1 ? 'rgba(255,183,3,.1)' : 'rgba(91,127,166,.1)',
+                    border:`1px solid ${i===1 ? 'rgba(255,183,3,.25)' : 'rgba(91,127,166,.25)'}`,
+                    padding:'4px 10px',
+                  }}>{t}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── PROCESS STRIP ─── */
+function Process() {
+  const steps = [
+    ['Discover','We audit your current workflow and identify the highest-ROI automation opportunities.'],
+    ['Design','We architect the agent — inputs, logic, integrations, approvals — tailored to your stack.'],
+    ['Deploy','We ship, test, and hand off a production system with full documentation and training.'],
+    ['Optimize','Ongoing monitoring and refinement. Your agent gets smarter over time.'],
+  ];
+  return (
+    <section style={{background:C.white, padding:'80px 80px'}}>
+      <div style={{maxWidth:1240, margin:'0 auto'}}>
+        <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:0, borderTop:`3px solid ${C.amber}`}}>
+          {steps.map(([t,d],i)=>(
+            <div key={i} style={{
+              padding:'32px 28px',
+              borderRight: i<3 ? '1px solid rgba(33,37,41,.08)' : 'none',
+            }}>
+              <div style={{fontSize:11, fontWeight:700, color:C.amber, letterSpacing:'.12em', marginBottom:16}}>0{i+1}</div>
+              <div style={{fontSize:18, fontWeight:700, color:C.charcoal, marginBottom:12}}>{t}</div>
+              <div style={{fontSize:13, color:'rgba(33,37,41,.55)', lineHeight:1.65}}>{d}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── CTA ─── */
+function CTA() {
+  const [form, setForm] = useState({ name:'', email:'', company:'', challenge:'' });
+  const [sent, setSent] = useState(false);
+  const set = k => e => setForm(f=>({...f,[k]:e.target.value}));
+
+  return (
+    <section id="contact" style={{background:C.charcoal, padding:'100px 80px'}}>
+      <div style={{maxWidth:1240, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 1fr', gap:80, alignItems:'start'}}>
+        {/* Left */}
+        <div>
+          <div style={{fontSize:11, fontWeight:700, letterSpacing:'.14em', color:C.amber, textTransform:'uppercase', marginBottom:20}}>Free Consultation</div>
+          <h2 style={{fontSize:'clamp(28px,3.5vw,46px)', fontWeight:800, color:C.white, lineHeight:1.1, letterSpacing:'-0.025em', marginBottom:24}}>
+            See what AI can do for your specific workflow.
+          </h2>
+          <p style={{fontSize:16, color:'rgba(255,255,255,.48)', lineHeight:1.7, marginBottom:44}}>
+            We start every engagement with a deep-dive on your current process — then show you exactly what an agent would automate and what it would save. No obligation.
+          </p>
+          <div style={{display:'flex', flexDirection:'column', gap:18}}>
+            {[
+              '30-minute workflow audit — free',
+              'Custom ROI estimate for your team size',
+              'Full architecture recommendation',
+              'Local to St. George, UT · Remote worldwide',
+            ].map((item,i)=>(
+              <div key={i} style={{display:'flex', alignItems:'flex-start', gap:14}}>
+                <div style={{width:6,height:6,borderRadius:'50%',background:C.amber,marginTop:6,flexShrink:0}}/>
+                <span style={{fontSize:15, color:'rgba(255,255,255,.62)', lineHeight:1.5}}>{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Right */}
+        <div style={{background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.1)', padding:'44px 40px'}}>
+          {sent ? (
+            <div style={{textAlign:'center', padding:'48px 0'}}>
+              <div style={{
+                width:56,height:56,borderRadius:'50%',
+                background:`${C.amber}18`,border:`2px solid ${C.amber}`,
+                display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 24px',
+              }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <polyline points="20 6 9 17 4 12" stroke={C.amber} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div style={{fontSize:24,fontWeight:700,color:C.white,marginBottom:12}}>You're in.</div>
+              <div style={{fontSize:15,color:'rgba(255,255,255,.45)',lineHeight:1.6}}>We'll reach out within one business day to schedule your workflow audit.</div>
+            </div>
+          ) : (
+            <form onSubmit={e=>{e.preventDefault();setSent(true);}} style={{display:'flex',flexDirection:'column',gap:22}}>
+              <div style={{fontSize:19,fontWeight:700,color:C.white,marginBottom:4}}>Book Your Free Consult</div>
+              {[
+                {k:'name',    label:'Your Name',   type:'text',  ph:'Jane Smith'},
+                {k:'email',   label:'Work Email',  type:'email', ph:'jane@company.com'},
+                {k:'company', label:'Company',     type:'text',  ph:'Acme Corp'},
+              ].map(({k,label,type,ph})=>(
+                <div key={k}>
+                  <label style={{display:'block',fontSize:11,fontWeight:700,color:'rgba(255,255,255,.4)',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8}}>{label}</label>
+                  <input type={type} placeholder={ph} required value={form[k]} onChange={set(k)}/>
+                </div>
+              ))}
+              <div>
+                <label style={{display:'block',fontSize:11,fontWeight:700,color:'rgba(255,255,255,.4)',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:8}}>Biggest Workflow Challenge</label>
+                <textarea rows={3} placeholder="e.g. We manually process 200 invoices per week with 3 FTEs..." required value={form.challenge} onChange={set('challenge')} style={{resize:'vertical'}}/>
+              </div>
+              <button type="submit" className="btn-amber" style={{width:'100%',padding:'15px',fontSize:15,cursor:'pointer'}}>
+                Request My Free Consult →
+              </button>
+              <div style={{fontSize:12,color:'rgba(255,255,255,.25)',textAlign:'center'}}>No commitment. Response within 24 hours.</div>
+            </form>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── FOOTER ─── */
+function Footer() {
+  return (
+    <footer style={{background:'#191C1F', padding:'36px 80px', borderTop:'1px solid rgba(255,255,255,.06)'}}>
+      <div style={{maxWidth:1240, margin:'0 auto', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16}}>
+        <WordMark size={18}/>
+        <div style={{fontSize:13, color:'rgba(255,255,255,.28)', textAlign:'center'}}>
+          Custom AI Solutions · St. George, Utah · Remote Worldwide
+        </div>
+        <div style={{fontSize:13, color:'rgba(255,255,255,.28)'}}>© 2025 peregrine.dev</div>
+      </div>
+    </footer>
+  );
+}
+
+/* ─── APP ─── */
+function App() {
+  return <>
+    <Nav/>
+    <Hero/>
+    <WorkflowDemo/>
+    <Services/>
+    <Process/>
+    <CTA/>
+    <Footer/>
+  </>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
