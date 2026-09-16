@@ -24,6 +24,7 @@
   @keyframes tapRing { 0%,55% { opacity:0; transform:scale(.7); } 62% { opacity:.9; transform:scale(1); } 75%,100% { opacity:0; transform:scale(1.5); } }
   @keyframes dots { 0%,100% { opacity:.25; } 50% { opacity:1; } }
   @keyframes drawPath { to { stroke-dashoffset:0; } }
+  @media (max-width:680px) { .nav-link { display:none; } }
 </style>
 <script src="./image-slot.js"></script>
 </helmet>
@@ -35,9 +36,9 @@
     <span style="color:#F8F5F0">peregrine</span><span style="color:#FFB703">.dev</span>
   </span>
   <div style="display:flex;align-items:center;gap:clamp(14px,3vw,32px)">
-    <a href="#why" style="color:rgba(255,255,255,.6);font-size:14px;font-weight:500">Why Peregrine</a>
-    <a href="#examples" style="color:rgba(255,255,255,.6);font-size:14px;font-weight:500">Examples</a>
-    <a href="#how" style="color:rgba(255,255,255,.6);font-size:14px;font-weight:500">How it plugs in</a>
+    <a href="#why" class="nav-link" style="color:rgba(255,255,255,.6);font-size:14px;font-weight:500">Why Peregrine</a>
+    <a href="#examples" class="nav-link" style="color:rgba(255,255,255,.6);font-size:14px;font-weight:500">Examples</a>
+    <a href="#how" class="nav-link" style="color:rgba(255,255,255,.6);font-size:14px;font-weight:500">How it plugs in</a>
     <a href="{{ ctaUrl }}" style="background:#FFB703;color:#212529;font-weight:700;font-size:14px;padding:9px 20px">Book a Demo</a>
   </div>
 </nav>
@@ -63,7 +64,7 @@
       style="animation:drawPath 3.5s ease forwards .9s"/>
   </svg>
 
-  <div style="position:relative;max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:clamp(32px,5vw,64px);align-items:center">
+  <div style="position:relative;max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:clamp(32px,5vw,64px);align-items:center">
     <div style="min-width:0;animation:fadeUp .8s ease both .1s">
       
       <h1 style="font-size:clamp(34px,5.4vw,66px);font-weight:800;color:#F8F5F0;line-height:1.02;letter-spacing:-.03em;margin-bottom:22px;text-wrap:pretty">
@@ -152,7 +153,7 @@
     </div>
   </div>
 
-  <div style="position:relative;max-width:1240px;margin:clamp(48px,7vw,90px) auto 0;padding-top:36px;border-top:1px solid rgba(255,255,255,.08);display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:28px">
+  <div style="position:relative;max-width:1240px;margin:clamp(48px,7vw,90px) auto 0;padding-top:36px;border-top:1px solid rgba(255,255,255,.08);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:28px">
     <div>
       <div style="font-size:44px;font-weight:800;color:#FFB703;letter-spacing:-.03em;line-height:1">24/7</div>
       <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:6px;line-height:1.5">An AI agent replies after hours, qualifies the lead and books it, so it never sits as a voicemail nobody returns.</div>
@@ -177,7 +178,7 @@
       </h2>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:clamp(18px,2.5vw,30px);margin-bottom:clamp(26px,3vw,34px)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(290px,100%),1fr));gap:clamp(18px,2.5vw,30px);margin-bottom:clamp(26px,3vw,34px)">
       <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:22px 20px 24px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
           <span style="width:26px;height:26px;border-radius:50%;background:rgba(224,92,92,.14);border:1px solid rgba(224,92,92,.4);color:#e05c5c;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center">✕</span>
@@ -360,7 +361,7 @@
       </h2>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:clamp(14px,2vw,22px);align-items:stretch">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:clamp(14px,2vw,22px);align-items:stretch">
       <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:24px 22px">
         <div style="font-size:11px;font-family:monospace;letter-spacing:.14em;color:rgba(255,255,255,.35);margin-bottom:18px">YOUR STACK</div>
         <div style="display:flex;flex-direction:column;gap:10px">
@@ -403,7 +404,7 @@
 </section>
 
 <section id="demo" style="background:#212529;border-top:1px solid rgba(255,255,255,.06);padding:clamp(56px,8vw,100px) clamp(20px,6vw,80px)">
-  <div style="max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(36px,5vw,72px);align-items:start">
+  <div style="max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:clamp(36px,5vw,72px);align-items:start">
     <div style="min-width:0">
       <div style="font-size:11px;font-weight:700;letter-spacing:.14em;color:#FFB703;text-transform:uppercase;margin-bottom:18px">Book a demo</div>
       <h2 style="font-size:clamp(26px,3.5vw,46px);font-weight:800;color:#F8F5F0;line-height:1.1;letter-spacing:-.025em;margin-bottom:20px">
