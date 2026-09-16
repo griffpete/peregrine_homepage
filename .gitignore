@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# local working files not part of the site
+*.mov
+Screenshot *.png
+/legacy_index.html
+/Graph Ideas/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
