@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/onyx", "destination": "/onyx/index.html" },
+    { "source": "/onyx/((?!.*\\.).*)", "destination": "/onyx/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/onyx/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
+  ]
+}
